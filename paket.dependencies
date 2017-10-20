@@ -1,0 +1,5 @@
+source https://www.nuget.org/api/v2
+nuget EventStore.ClientAPI.NetCore
+nuget Expecto
+nuget FSharp.Core
+nuget Newtonsoft.Json
