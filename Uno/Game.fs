@@ -29,16 +29,24 @@ and CardPlayed = {
 type State = 
     | InitialState
 
-type GameError =
-    | GameAlreadyStarted
+type GameError = Unit
+    // | GameAlreadyStarted
 
 type Decide = Command -> State -> Result<Event list, GameError>
 type Evolve = State -> Event -> State
 
-// Step 1: find the minimal implementation that doesn't raise an error
+// Step 1:
+// Make the simplest implementation for the following signature
+// Command -> State -> Event list Result
 
-let decide : Decide = fun  _ _ -> failwith "Not Implemented"
-       
+let decide : Decide = fun  command state -> failwith "Not Implemented"
+
+// Step 2:
+// Make the simplest implementation for the following signature
+// State -> Event list -> State
+// s -> Event [] -> sbyte
+
+//  (s + ([a;b;c] @ [e;f;g])) = (s + [a;b;c]) + [e; f; g]) 
 let evolve : Evolve =
-    fun _ _ -> failwith "Not Implemented"
+    fun state event -> failwith "Not Implemented"
 
