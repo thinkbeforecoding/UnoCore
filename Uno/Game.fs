@@ -35,6 +35,7 @@ type GameError =
 type Decide = Command -> State -> Result<Event list, GameError>
 type Evolve = State -> Event -> State
 
+// Step 1: find the minimal implementation that doesn't raise an error
 
 let decide : Decide = fun  _ _ -> failwith "Not Implemented"
        

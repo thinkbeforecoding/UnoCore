@@ -8,6 +8,7 @@
     <Compile Include="Game.fs" />
     <Compile Include="Serialization.fs" />
     <Compile Include="CommandHandler.fs" />
+    <Compile Include="EventStore.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

@@ -17,8 +17,8 @@ let main argv =
 
         let store = EventStoreConnection.Create(settings, Uri "tcp://localhost:1113")
         do! store.ConnectAsync() |> Async.AwaitTask
-        let read = CommandHandler.EventStore.read store
-        let append = CommandHandler.EventStore.append store
+        let read = EventStore.read store
+        let append = EventStore.append store
         let handler = CommandHandler.handler read append
 
         let! result = handler (CommandHandler.StreamId "Game-1") (StartGame { Players = PlayerCount 4; FirstCard = Digit(Five, Blue)})
