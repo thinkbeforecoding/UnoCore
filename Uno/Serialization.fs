@@ -59,7 +59,7 @@ module GameEvents =
         | "Five" -> Some Five
         | "Six" -> Some Six
         | "Seven" -> Some Seven
-        | "Height" -> Some Height
+        | "Eight" -> Some Eight
         | "Nine" -> Some Nine
         | _ -> None
     let (|Card|_|)  =

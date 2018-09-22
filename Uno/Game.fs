@@ -39,7 +39,7 @@ type Evolve = State -> Event -> State
 // Make the simplest implementation for the following signature
 // Command -> State -> Event list Result
 
-let decide : Decide = fun  command state -> failwith "Not Implemented"
+let decide : Decide = fun  command state -> failwith "Not Implemented" // failwith "Not Implemented"
 
 // Step 2:
 // Make the simplest implementation for the following signature
