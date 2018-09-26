@@ -1,10 +1,9 @@
 module Game
 
-[<Struct>]
-type PlayerCount = PlayerCount of int
+type [<Struct>] PlayerCount = PlayerCount of int
 
-[<Struct>]
-type PlayerId = PlayerId of int
+
+type [<Struct>] PlayerId = PlayerId of int
 
 type Command = 
     | StartGame of StartGame

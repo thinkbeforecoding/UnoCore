@@ -39,7 +39,7 @@ module GameEvents =
 
     let toCardDto = function
         | Digit(d, c ) -> { Value = string d; Color = string c}
-        | Skip(c) -> { Value = "Skip"; Color = string c }
+      //| Skip(c) -> { Value = "Skip"; Color = string c }
 
     let (|Color|_|) c =
         match c with
@@ -64,7 +64,7 @@ module GameEvents =
         | _ -> None
     let (|Card|_|)  =
         function
-        | { Value = "Skip"; Color = Color c } -> Some (Skip(c))
+      //| { Value = "Skip"; Color = Color c } -> Some (Skip(c))
         | { Value = Digit d; Color = Color c } -> Some (Digit(d,c))
         | _ -> None 
 
