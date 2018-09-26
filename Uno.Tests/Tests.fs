@@ -13,23 +13,25 @@ let (==) result expected =
 let (=!) result expected =
     Assert.Equal(Error expected, result) 
     
+let notImplemented() : unit =
+    failwith "Not implemented"
 
 // Step 4:
 // Change the decide function to make this test pass
 [<Fact>]
 let ``Game should start``() =
-        []
-        => StartGame { Players = PlayerCount 3; FirstCard = Digit(Three, Red)}
-        == [ GameStarted { Players = PlayerCount 3; FirstCard = Digit(Three, Red) } ]
+    []
+    => StartGame { Players = PlayerCount 3; FirstCard = Digit(Three, Red)}
+    == [ GameStarted { Players = PlayerCount 3; FirstCard = Digit(Three, Red) } ]
 
 // Step 5:
 // Change the decide function to make this test pass
 [<Fact>]
 let ``Playing alone is not fun`` () =
-  []
-  => StartGame { Players = PlayerCount 1; FirstCard = Digit( Seven, Yellow)}
-  //=! TooFewPlayers
-  
+    []
+    => StartGame { Players = PlayerCount 1; FirstCard = Digit( Seven, Yellow)}
+    //=! TooFewPlayers
+    notImplemented()
 
 // Step 6:
 // What should you change to make this test pass ?
@@ -38,46 +40,47 @@ let ``Game should not be started twice``() =
     [ GameStarted { Players= PlayerCount 2; FirstCard = Digit(Nine, Yellow) } ]
     => StartGame { Players = PlayerCount 3; FirstCard = Digit(Three, Red)}
     // =! GameAlreadyStarted
+    notImplemented()
 
 
 // Step 7:
 // Make this two tests pass... doing the simplest thing that work
 [<Fact>]
 let ``Card with same value can be played``() =
-    failwith "Not implemented"
+    notImplemented()
 
 [<Fact>]
 let ``Card with same color can be played``() =
-    failwith "Not implemented"
+    notImplemented()
 
 // Step 8:
 // Make this test pass
 [<Fact>]
 let ``Card can be played only once game is started``() =
-    failwith "Not implemented"
+    notImplemented()
 
 // Step 9:
 // What happens here ?!
 [<Fact>]
 let ``Card should be same color or same value``() =
-    failwith "Not implemented"
-  // ...
+    notImplemented()
+    // ...
 
 // Step 10:
 // What happens here ?!
 [<Fact>]
 let ``Player should play during his turn``() =
-    failwith "Not implemented"
+    notImplemented()
 
 // Step 11:
 // Testing a full round
 [<Fact>]
 let ``The after a table round, the dealer plays``() =
-    failwith "Not implemented"
+    notImplemented()
 
 [<Fact>]
 let ``The after a table round, the dealer turn start``() =
-    failwith "Not implemented"
+    notImplemented()
 // Step 12:
 // Look at the evolve function...
 // It starts to contains logic.
@@ -88,14 +91,14 @@ let ``The after a table round, the dealer turn start``() =
 // Make this test pass
 [<Fact>]
 let ``Player can interrupt``() =
-    failwith "Not implemented"
+    notImplemented()
 
 // Step 14:
 // Missing an interrupt is not concidered as playing at the wrong turn.
 // So what happens here ?
 [<Fact>]
 let ``Player get no penalty when missing an interrupt``() =
-    failwith "Not implemented"
+    notImplemented()
 
 
 // Step 15:
