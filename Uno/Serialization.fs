@@ -34,12 +34,17 @@ type CardPlayedDto = {
     Card: CardDto
 }
 
+type TurnBeganDto = {
+    Player: int
+}
+
 module GameEvents = 
     open Game
 
     let toCardDto = function
         | Digit(d, c ) -> { Value = string d; Color = string c}
-      //| Skip(c) -> { Value = "Skip"; Color = string c }
+        | Skip(c) -> { Value = "Skip"; Color = string c }
+        | Kickback(c) -> { Value = "Kickback"; Color = string c }
 
     let (|Color|_|) c =
         match c with
@@ -64,7 +69,8 @@ module GameEvents =
         | _ -> None
     let (|Card|_|)  =
         function
-      //| { Value = "Skip"; Color = Color c } -> Some (Skip(c))
+        | { Value = "Skip"; Color = Color c } -> Some (Skip(c))
+        | { Value = "Kickback"; Color = Color c} -> Some (Kickback c)
         | { Value = Digit d; Color = Color c } -> Some (Digit(d,c))
         | _ -> None 
 
@@ -91,6 +97,10 @@ module GameEvents =
                     { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
                       Card = toCardDto e.Card }
                     |> serialize)
+            | TurnBegan e ->
+                struct( "TurnBegan",
+                    { TurnBeganDto.Player = let (PlayerId p) = e.Player in p } 
+                    |> serialize )
             
 
     let deserialize struct(eventType, data) =
@@ -110,5 +120,12 @@ module GameEvents =
                     | { GameStartedDto.Players = Players players; FirstCard = Card card } ->
                         [GameStarted  { Players = players; FirstCard = card }]
                     | _ -> []
+        | "TurnBegan" ->
+            data
+            |> deserialize
+            |> function
+                | { TurnBeganDto.Player = Player player } ->
+                    [ TurnBegan { Player = player} ] 
+                | _ -> []
         | _ -> []
      

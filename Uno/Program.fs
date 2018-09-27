@@ -23,7 +23,7 @@ let main argv =
 
         let! result = handler (CommandHandler.StreamId "Game-1") (StartGame { Players = PlayerCount 4; FirstCard = Digit(Five, Blue)})
         match result with
-        | Ok () -> printfn "Ok done"
+        | Ok _ -> printfn "Ok done"
         | Error err -> printfn "Error: %A" err
 
     } |> Async.RunSynchronously

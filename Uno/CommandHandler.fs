@@ -7,6 +7,7 @@ type StreamId = StreamId of string
 type EventNumber = EventNumber of int64
     with
     static member Start = EventNumber 0L
+    static member (+) (EventNumber n,x) = EventNumber (n+x) 
 
 type EventStream<'e,'v> = Slice<'e,'v> Async
 and Slice<'e,'v> = Slice of 'e list * Continuation<'e,'v>
@@ -21,7 +22,7 @@ module EventStream =
             let s' = List.fold f s es
             match continuation with
             | Last v -> return s',v
-            | Next next -> return! fold f s next }
+            | Next next -> return! fold f s' next }
 
 
 type Read<'e> = StreamId -> EventNumber -> EventStream<'e, EventNumber>
@@ -32,12 +33,59 @@ open Game
 
 // Step 16:
 // Implement the command handler
-let handler (read: _ Read) (append: _ Append) stream command =
-    failwith "Not implemented"
+let handler (read: _ Read) (append: _ Append) (*readSnapshot saveSnapshot*) stream command =
+    async {
+(*        let! startVersion, startState =
+            async {
+            match! readSnapshot stream with
+            | Some(snapVersion, snapshot) ->
+                return snapVersion, snapshot
+            | None -> return EventNumber.Start, InitialState } *)
+        let! state, version = 
+            read stream EventNumber.Start (*startVersion*)
+            |> EventStream.fold evolve InitialState (*startState*)
+        match decide command state with
+        | Error e ->
+            return Error e
+        | Ok events ->
+            let! nextVersion = append stream version events
+            (*if version > startVersion + 100L then
+                saveSnapshot stream (version, state)  *)
+
+            return Ok events
+    }
+
+
+type Agent<'t> = MailboxProcessor<'t>
+
+let inMemoryhandler (read: _ Read) (append: _ Append) stream =
+    Agent.Start <| fun mailbox ->
+        let rec loop state version =
+            async {
+                let! command = mailbox.Receive()
+                match decide command state with
+                | Error e ->
+                    // notify someone..
+                    return! loop state version
+                | Ok events ->
+                    let! newVersion = append stream version events
+                    let newState = 
+                        events
+                        |> List.fold evolve state 
+
+                    return! loop newState newVersion }
+        async { 
+            let! state, version =
+                read stream EventNumber.Start 
+                |> EventStream.fold evolve InitialState
+            return! loop state version
+        }
 
 
 
 
+
+ 
 
 
 
