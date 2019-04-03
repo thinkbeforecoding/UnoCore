@@ -2,5 +2,8 @@
 **/obj/
 packages/
 paket-files/
+.paket/.store
+**~
+.paket/load/
 .vs/
 **.user

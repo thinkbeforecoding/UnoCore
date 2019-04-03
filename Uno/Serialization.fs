@@ -3,7 +3,7 @@ module Serialisation
 open Game
 open Newtonsoft.Json
 open System
-type SerializedEvent = (struct(string * string))
+type SerializedEvent = (string * string)
 
 let serializer = JsonSerializer.Create()
 
@@ -62,6 +62,7 @@ module GameEvents =
         | "Eight" -> Some Eight
         | "Nine" -> Some Nine
         | _ -> None
+
     let (|Card|_|)  =
         function
       //| { Value = "Skip"; Color = Color c } -> Some (Skip(c))
@@ -73,6 +74,7 @@ module GameEvents =
             None
         else
             Some (PlayerCount n)
+
     let (|Player|_|) n =
         if n < 0 || n > 10 then
             None
@@ -82,26 +84,26 @@ module GameEvents =
     let serialize event = 
             match event with
             | GameStarted e -> 
-                struct("GameStarted", 
+                "GameStarted", 
                     { GameStartedDto.Players = let (PlayerCount p) = e.Players in p
                       FirstCard = toCardDto e.FirstCard } 
-                    |> serialize)
-            | CardPlayed e -> 
-                struct( "CardPlayed", 
-                    { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
-                      Card = toCardDto e.Card }
-                    |> serialize)
+                    |> serialize
+            //| CardPlayed e -> 
+            //    "CardPlayed", 
+            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
+            //          Card = toCardDto e.Card }
+            //        |> serialize
             
 
-    let deserialize struct(eventType, data) =
+    let deserialize (eventType, data) =
         match eventType with
-        | "CardPlayed" -> 
-            data
-            |> deserialize
-            |> function 
-                | { CardPlayedDto.Player = Player player; Card = Card card } ->
-                    [CardPlayed { Player = player; Card = card }]
-                | _ -> []
+        //| "CardPlayed" -> 
+        //    data
+        //    |> deserialize
+        //    |> function 
+        //        | { CardPlayedDto.Player = Player player; Card = Card card } ->
+        //            [CardPlayed { Player = player; Card = card }]
+        //        | _ -> []
 
         | "GameStarted" -> 
             data

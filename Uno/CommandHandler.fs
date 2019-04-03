@@ -1,5 +1,6 @@
 module CommandHandler
 
+
 [<Struct>]
 type StreamId = StreamId of string
 
@@ -8,23 +9,27 @@ type EventNumber = EventNumber of int64
     with
     static member Start = EventNumber 0L
 
-type EventStream<'e,'v> = Slice<'e,'v> Async
-and Slice<'e,'v> = Slice of 'e list * Continuation<'e,'v>
-and Continuation<'e,'v> =
-    | Next of EventStream<'e,'v>
-    | Last of 'v
+
+type Stream<'e> = Slice<'e> Async
+
+and Slice<'e> = Slice of 'e list * Continuation<'e>
+
+and Continuation<'e> =
+| Next of Stream<'e>
+| Last of EventNumber
 
 module EventStream =
-    let rec fold f s (sliced: EventStream<_,_>) =
+
+    let rec fold f state (sliced: _ Stream) =
         async {
             let! (Slice (es, continuation)) = sliced
-            let s' = List.fold f s es
+            let s' = List.fold f state es
             match continuation with
             | Last v -> return s',v
-            | Next next -> return! fold f s next }
+            | Next next -> return! fold f s' next }
 
 
-type Read<'e> = StreamId -> EventNumber -> EventStream<'e, EventNumber>
+type Read<'e> = StreamId -> EventNumber -> 'e Stream
 type Append<'e> = StreamId -> EventNumber -> 'e list -> EventNumber Async
 
 

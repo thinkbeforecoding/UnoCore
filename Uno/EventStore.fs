@@ -1,25 +1,28 @@
 module EventStore
 
+open System
 open EventStore.ClientAPI
 open Serialisation
 open Game
 open CommandHandler
 
+let utf8 = System.Text.Encoding.UTF8
+
 let ofEvent (event: ResolvedEvent) : SerializedEvent =
     let eventType = event.Event.EventType
-    let data = System.Text.Encoding.UTF8.GetString(event.Event.Data)
-    struct(eventType, data)
+    let data = utf8.GetString(event.Event.Data)
+    eventType, data
 
-let toEvent (struct(eventType, data): SerializedEvent) =
+let toEvent ((eventType, data): SerializedEvent) =
     EventData(
-        System.Guid.NewGuid(),
+        Guid.NewGuid(),
         eventType,
         true,
-        System.Text.Encoding.UTF8.GetBytes(data: string),
+        utf8.GetBytes(data: string),
         null)
 
-
-let read (store:IEventStoreConnection) : Read<_> =
+/// Read events from the event store
+let read (store:IEventStoreConnection) deserialize: Read<_> =
     fun (StreamId stream) (EventNumber version) ->
         let rec readSlice version =
             async {
@@ -30,7 +33,7 @@ let read (store:IEventStoreConnection) : Read<_> =
                 let events =
                     slice.Events
                     |> Array.toList
-                    |> List.collect(ofEvent >> GameEvents.deserialize)
+                    |> List.collect(ofEvent >> deserialize)
                 
                 if slice.IsEndOfStream then
                     return Slice(events, Last(EventNumber slice.LastEventNumber))
@@ -39,12 +42,13 @@ let read (store:IEventStoreConnection) : Read<_> =
             }
         readSlice version
 
-let append (store: IEventStoreConnection) : _ Append =
+/// Append events to the event store
+let append (store: IEventStoreConnection) serialize : _ Append =
     fun (StreamId stream) (EventNumber expectedVersion) (events: Event list) ->
         async {
             let eventData =
                 events
-                |> List.map(GameEvents.serialize >> toEvent)
+                |> List.map (serialize >> toEvent)
                 |> List.toArray
                 
             let! result =

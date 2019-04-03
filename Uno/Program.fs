@@ -3,6 +3,7 @@ open EventStore.ClientAPI
 open EventStore.ClientAPI.SystemData
 open Game
 open System
+open Serialisation
 
 [<EntryPoint>]
 let main argv =
@@ -17,11 +18,12 @@ let main argv =
 
         let store = EventStoreConnection.Create(settings, Uri "tcp://localhost:1113")
         do! store.ConnectAsync() |> Async.AwaitTask
-        let read = EventStore.read store
-        let append = EventStore.append store
+        let read = EventStore.read store GameEvents.deserialize
+        let append = EventStore.append store GameEvents.serialize
         let handler = CommandHandler.handler read append
 
         let! result = handler (CommandHandler.StreamId "Game-1") (StartGame { Players = PlayerCount 4; FirstCard = Digit(Five, Blue)})
+
         match result with
         | Ok () -> printfn "Ok done"
         | Error err -> printfn "Error: %A" err

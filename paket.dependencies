@@ -1,7 +1,13 @@
-source https://www.nuget.org/api/v2
+framework: netcoreapp2.2, netstandard2.0
+storage: none
+generate_load_scripts: true
+
+source https://api.nuget.org/v3/index.json
+
 nuget EventStore.ClientAPI.NetCore
 nuget FSharp.Core
 nuget Microsoft.NET.Test.Sdk
 nuget Newtonsoft.Json
+nuget Unquote
 nuget xunit
 nuget xunit.runner.visualstudio
