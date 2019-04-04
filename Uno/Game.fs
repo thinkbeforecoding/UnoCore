@@ -1,13 +1,8 @@
 module Game
 
-type [<Struct>] PlayerCount = PlayerCount of int
-
+type [<Struct>] PlayerCount = Players of int
 
 type [<Struct>] PlayerId = PlayerId of int
-
-
-
-
 
 
 type Command = 
@@ -17,7 +12,6 @@ and StartGame = {
     Players: PlayerCount
     FirstCard: Card 
 }
-
 
 
 
@@ -37,6 +31,9 @@ and GameStarted = {
 
 type State = 
 | InitialState
+
+
+
 
 
 exception TooFewPlayers
@@ -70,6 +67,9 @@ type Decide = Command -> State -> Event list
 
 
 
+
+
+
 type Evolve = State -> Event -> State
 
 // Step 1:
@@ -78,7 +78,6 @@ type Evolve = State -> Event -> State
 
 let decide : Decide = 
     fun  command state -> failwith "Not Implemented"
-
 
 
 

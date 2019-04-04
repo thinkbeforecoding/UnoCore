@@ -3,6 +3,9 @@ module Serialisation
 open Game
 open Newtonsoft.Json
 open System
+open CommandHandler
+
+
 type SerializedEvent = (string * string)
 
 let serializer = JsonSerializer.Create()
@@ -34,13 +37,7 @@ type CardPlayedDto = {
     Card: CardDto
 }
 
-module GameEvents = 
-    open Game
-
-    let toCardDto = function
-        | Digit(d, c ) -> { Value = string d; Color = string c}
-      //| Skip(c) -> { Value = "Skip"; Color = string c }
-
+module Parse =
     let (|Color|_|) c =
         match c with
         | "Red" -> Some Red
@@ -73,7 +70,7 @@ module GameEvents =
         if n < 0 || n > 10 then
             None
         else
-            Some (PlayerCount n)
+            Some (Game.Players n)
 
     let (|Player|_|) n =
         if n < 0 || n > 10 then
@@ -81,11 +78,19 @@ module GameEvents =
         else
             Some (PlayerId n)
 
+module GameEvents = 
+    open Game
+
+    let toCardDto = function
+        | Digit(d, c ) -> { Value = string d; Color = string c}
+      //| Skip(c) -> { Value = "Skip"; Color = string c }
+
+
     let serialize event = 
             match event with
             | GameStarted e -> 
                 "GameStarted", 
-                    { GameStartedDto.Players = let (PlayerCount p) = e.Players in p
+                    { GameStartedDto.Players = let (Players p) = e.Players in p
                       FirstCard = toCardDto e.FirstCard } 
                     |> serialize
             //| CardPlayed e -> 
@@ -109,8 +114,48 @@ module GameEvents =
             data
             |> deserialize
             |> function 
-                    | { GameStartedDto.Players = Players players; FirstCard = Card card } ->
+                    | { GameStartedDto.Players = Parse.Players players
+                        FirstCard = Parse.Card card } ->
                         [GameStarted  { Players = players; FirstCard = card }]
                     | _ -> []
         | _ -> []
-     
+
+//type SnapshotDto = {
+//    Started: bool
+//    Version: int64
+//    TopCard: CardDto
+//    Player: int
+//    PlayerCount: int
+//}
+
+//module Snapshot =
+//    let deserialize data =
+//        data 
+//        |> deserialize
+//        |> function
+//            | { Started = true
+//                Version = version
+//                TopCard = GameEvents.Card card
+//                Player = p
+//                PlayerCount = c } ->
+//                Some (Started { TopCard = card; Turn = { Player = PlayerId p; Count = PlayerCount c}}, EventNumber version)
+//            | { Started = false
+//                Version = version} -> Some (InitialState, EventNumber version)
+//            | _ -> None
+
+//    let serialize (state: State) (EventNumber v) =
+//        match state with
+//        | InitialState ->
+//            { Started = false
+//              Version = v
+//              TopCard = { Value = ""; Color = "" }
+//              Player = 0
+//              PlayerCount = 0 }
+//        | Started s ->
+//            let (PlayerId p) = s.Turn.Player
+//            let (PlayerCount c) = s.Turn.Count
+//            { Version = v
+//              TopCard = GameEvents.toCardDto s.TopCard
+//              Player = p
+//              PlayerCount = c }
+//        |> serialize

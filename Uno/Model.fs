@@ -14,3 +14,8 @@ type Digit =
 type Card =
 | Digit of Digit * Color
 //| Skip of Color
+
+
+type Digit with
+    static member (*) (digit, color) =
+        Digit(digit, color)

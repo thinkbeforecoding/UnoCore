@@ -10,27 +10,8 @@ type EventNumber = EventNumber of int64
     static member Start = EventNumber 0L
 
 
-type Stream<'e> = Slice<'e> Async
-
-and Slice<'e> = Slice of 'e list * Continuation<'e>
-
-and Continuation<'e> =
-| Next of Stream<'e>
-| Last of EventNumber
-
-module EventStream =
-
-    let rec fold f state (sliced: _ Stream) =
-        async {
-            let! (Slice (es, continuation)) = sliced
-            let s' = List.fold f state es
-            match continuation with
-            | Last v -> return s',v
-            | Next next -> return! fold f s' next }
-
-
-type Read<'e> = StreamId -> EventNumber -> 'e Stream
-type Append<'e> = StreamId -> EventNumber -> 'e list -> EventNumber Async
+type Read<'e> = StreamId -> EventNumber -> 'e List * EventNumber
+type Append<'e> = StreamId -> EventNumber -> 'e list -> EventNumber
 
 
 open Game
@@ -58,18 +39,14 @@ let handler (read: _ Read) (append: _ Append) stream command =
 
 
 
-    // let rec load initialState startVersion =
-    //     read stream startVersion
-    //     |>EventStream.fold evolve initialState 
 
-    // async {
-    //     let! game, version = load InitialState EventNumber.Start
-    //     match decide command game with
-    //     | Ok newEvents ->
-    //         let! _ = append stream version newEvents
-    //         return Ok()
-    //     | Error error -> 
-    //         return Error error }
+//let events, v = read stream EventNumber.Start
+
+//events
+//|> List.fold evolve InitialState
+//|> decide command
+//|> append stream v
+//|> ignore
 
 
 
@@ -79,41 +56,52 @@ let handler (read: _ Read) (append: _ Append) stream command =
 // Implement Snapshoting
 
 
-// type Agent<'t> = MailboxProcessor<'t>
+type LoadSnapshot<'s> = StreamId -> ('s * EventNumber) option
+type SaveSnapshot<'s> = StreamId -> 's -> EventNumber -> unit
 
-// module EventNumber =
-//     let dist (EventNumber x) (EventNumber y) = x - y  
+type Agent<'t> = MailboxProcessor<'t>
 
-// let game read append loadSnapshot writeSnapshot stream =
-//     Agent.Start (fun mailbox ->
+module EventNumber =
+    let dist (EventNumber x) (EventNumber y) = x - y
+
+let snapStream (StreamId s) = StreamId ("Snap-" + s)
+
+//let game (read: _ Read) (append: _ Append) (loadSnapshot: _ LoadSnapshot) (saveSnapshot: _ SaveSnapshot) stream =
+//    let snapStream = snapStream stream
+//    Agent.Start (fun mailbox ->
 //         let rec loop state version snapshotVersion =
 //             async {
 //                 let! command, reply = mailbox.Receive()
-//                 let newEvents = decide command state
-//                 match newEvents with
-//                 |Ok newEvents ->
-//                     let! newVersion = append stream version newEvents
+//                 try 
+//                     let newEvents = decide command state
+//                     let newVersion = append stream version newEvents
 //                     let newState = List.fold evolve state newEvents
 //                     reply (Ok())
 
 //                     let newSnapshotVersion =
 //                         if EventNumber.dist newVersion snapshotVersion > 1000L then
-//                             writeSnapshot "snap-game" newState newVersion
+//                             saveSnapshot snapStream newState newVersion
 //                             newVersion
 //                         else
 //                             snapshotVersion
 
 //                     return! loop newState newVersion newSnapshotVersion
-//                 | Error err ->
+//                 with
+//                 | err ->
 //                     reply (Error err)
 //                     return! loop state version snapshotVersion    }
 //         let rec load initialState startVersion =
-//                 read stream startVersion
-//                 |> EventStream.fold evolve initialState
+//                 let events, v = read stream startVersion
+//                 List.fold evolve initialState events, v
 
 //         async {
-//             let! snapshotState, snapshotVersion = loadSnapshot "snap-game"
-//             let! state, version = load snapshotState snapshotVersion
+//             let snapshotState, snapshotVersion =
+//                 match loadSnapshot snapStream with
+//                 | Some (s, v) -> s,v
+//                 | None -> InitialState, EventNumber.Start
+
+//             let state, version = load snapshotState snapshotVersion
 //             return! loop state version snapshotVersion }) 
 
-
+//let send cmd (agent: _ Agent) =
+//    agent.PostAndAsyncReply(fun r -> cmd, r.Reply)

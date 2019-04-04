@@ -22,11 +22,30 @@ let main argv =
         let append = EventStore.append store GameEvents.serialize
         let handler = CommandHandler.handler read append
 
-        let! result = handler (CommandHandler.StreamId "Game-1") (StartGame { Players = PlayerCount 4; FirstCard = Digit(Five, Blue)})
+        let streamId = CommandHandler.StreamId "Game-1"
 
-        match result with
-        | Ok () -> printfn "Ok done"
-        | Error err -> printfn "Error: %A" err
+        try
+            handler streamId (StartGame { Players = Players 4; FirstCard = Five * Blue })
+            //handler streamId (PlayCard { Player = PlayerId 0; Card = Seven * Blue })
+            //handler streamId (PlayCard { Player = PlayerId 1; Card = Seven * Red })
+            //handler streamId (PlayCard { Player = PlayerId 2; Card = Four * Red })
+            //handler streamId (PlayCard { Player = PlayerId 3; Card = Four * Red })
+
+            printfn "Ok done"
+        with
+        | err -> printfn "Error: %A" err
+
+        //let loadSnap = EventStore.loadSnapshot store Snapshot.deserialize
+        //let saveSnap = EventStore.saveSnapshot store Snapshot.serialize
+        //let handler = CommandHandler.game read append loadSnap saveSnap
+
+        //let agent = handler (CommandHandler.StreamId "Game-1") 
+        
+        //let! result' = agent |> CommandHandler.send (StartGame { Players = PlayerCount 4; FirstCard = Digit(Five, Blue)})
+
+        //match result' with
+        //| Ok () -> printfn "Ok done"
+        //| Error err -> printfn "Error: %A" err
 
     } |> Async.RunSynchronously
 

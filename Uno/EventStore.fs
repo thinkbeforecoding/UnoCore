@@ -22,37 +22,53 @@ let toEvent ((eventType, data): SerializedEvent) =
         null)
 
 /// Read events from the event store
-let read (store:IEventStoreConnection) deserialize: Read<_> =
+let read (store:IEventStoreConnection) deserialize: _ Read =
     fun (StreamId stream) (EventNumber version) ->
-        let rec readSlice version =
-            async {
-                let! slice =
-                    store.ReadStreamEventsForwardAsync(stream, version, 1000, true )
-                    |> Async.AwaitTask
+        let slice =
+            store.ReadStreamEventsForwardAsync(stream, version, 5000, true )
+            |> Async.AwaitTask
+            |> Async.RunSynchronously
 
-                let events =
-                    slice.Events
-                    |> Array.toList
-                    |> List.collect(ofEvent >> deserialize)
-                
-                if slice.IsEndOfStream then
-                    return Slice(events, Last(EventNumber slice.LastEventNumber))
-                else
-                    return Slice(events, Next (readSlice slice.NextEventNumber) )
-            }
-        readSlice version
+        let events =
+            slice.Events
+            |> Array.toList
+            |> List.collect(ofEvent >> deserialize)
+        
+        events, EventNumber slice.LastEventNumber
+
 
 /// Append events to the event store
 let append (store: IEventStoreConnection) serialize : _ Append =
     fun (StreamId stream) (EventNumber expectedVersion) (events: Event list) ->
-        async {
-            let eventData =
-                events
-                |> List.map (serialize >> toEvent)
-                |> List.toArray
-                
-            let! result =
-                store.AppendToStreamAsync(stream,expectedVersion,null,eventData)
-                |> Async.AwaitTask
-            return EventNumber result.NextExpectedVersion
-        }
+        let eventData =
+            events
+            |> List.map (serialize >> toEvent)
+            |> List.toArray
+            
+        let result =
+            store.AppendToStreamAsync(stream,expectedVersion,null,eventData)
+            |> Async.AwaitTask
+            |> Async.RunSynchronously
+
+        EventNumber result.NextExpectedVersion
+
+let loadSnapshot (store: IEventStoreConnection) (deserialize: string -> ('s * EventNumber) option) : 's LoadSnapshot =
+    fun (StreamId stream) ->
+        let slice =
+            store.ReadStreamEventsBackwardAsync(stream, int64 StreamPosition.End, 1, false)
+            |> Async.AwaitTask
+            |> Async.RunSynchronously
+    
+        match slice.Events with
+        | [| e |] -> 
+            let _, d = ofEvent e
+            deserialize d
+        | _ -> None
+
+let saveSnapshot (store: IEventStoreConnection) (serialize: 's -> EventNumber -> string) : 's SaveSnapshot =
+    fun (StreamId stream) state version ->
+        let data = toEvent("Snapshot", serialize state version)
+        store.AppendToStreamAsync(stream, ExpectedVersion.Any, data)
+        |> Async.AwaitTask
+        |> Async.RunSynchronously
+        |> ignore

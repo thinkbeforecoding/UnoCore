@@ -6,8 +6,8 @@
   <ItemGroup>
     <Compile Include="Model.fs" />
     <Compile Include="Game.fs" />
-    <Compile Include="Serialization.fs" />
     <Compile Include="CommandHandler.fs" />
+    <Compile Include="Serialization.fs" />
     <Compile Include="EventStore.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
