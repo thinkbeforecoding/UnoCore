@@ -5,6 +5,8 @@ generate_load_scripts: true
 source https://api.nuget.org/v3/index.json
 
 nuget EventStore.ClientAPI.NetCore
+nuget FsCheck
+nuget FsCheck.Xunit
 nuget FSharp.Core
 nuget Microsoft.NET.Test.Sdk
 nuget Newtonsoft.Json

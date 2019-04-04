@@ -108,3 +108,27 @@ let ``14: Player get no penalty when missing an interrupt``() =
 // Step 15:
 // Uncomment the Kickback card and implement it.
 // The kickback changes the direction of the game.
+
+
+open FsCheck.Xunit
+open FsCheck
+type Arbs =
+    static member players() =
+        Gen.choose(2,9)
+        |> Gen.map Players
+        |> Arb.fromGen
+
+    static member player() =
+        Gen.choose(0,9)
+        |> Gen.map PlayerId
+        |> Arb.fromGen
+
+[<Property(Arbitrary = [|typeof<Arbs>|])>]
+let ``Event serialization roundtrips`` e =
+    let result = 
+        e
+        |> Serialisation.GameEvents.serialize
+        |> Serialisation.GameEvents.deserialize
+    test <@ result = [ e ] @>
+
+    

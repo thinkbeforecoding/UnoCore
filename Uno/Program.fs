@@ -26,10 +26,10 @@ let main argv =
 
         try
             handler streamId (StartGame { Players = Players 4; FirstCard = Five * Blue })
-            //handler streamId (PlayCard { Player = PlayerId 0; Card = Seven * Blue })
-            //handler streamId (PlayCard { Player = PlayerId 1; Card = Seven * Red })
-            //handler streamId (PlayCard { Player = PlayerId 2; Card = Four * Red })
+            //handler streamId (PlayCard { Player = PlayerId 1; Card = Seven * Blue })
+            //handler streamId (PlayCard { Player = PlayerId 2; Card = Seven * Red })
             //handler streamId (PlayCard { Player = PlayerId 3; Card = Four * Red })
+            //handler streamId (PlayCard { Player = PlayerId 0; Card = Four * Red })
 
             printfn "Ok done"
         with

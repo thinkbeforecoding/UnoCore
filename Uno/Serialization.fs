@@ -98,7 +98,17 @@ module GameEvents =
             //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
             //          Card = toCardDto e.Card }
             //        |> serialize
-            
+            //| WrongCardPlayed e -> 
+            //    "WrongCardPlayed", 
+            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
+            //          Card = toCardDto e.Card }
+            //        |> serialize
+            //| PlayerPlayedAtWrongTurn e -> 
+            //    "PlayerPlayedAtWrongTurn", 
+            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
+            //          Card = toCardDto e.Card }
+            //        |> serialize
+           
 
     let deserialize (eventType, data) =
         match eventType with
@@ -106,8 +116,22 @@ module GameEvents =
         //    data
         //    |> deserialize
         //    |> function 
-        //        | { CardPlayedDto.Player = Player player; Card = Card card } ->
+        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
         //            [CardPlayed { Player = player; Card = card }]
+        //        | _ -> []
+        //| "WrongCardPlayed" -> 
+        //    data
+        //    |> deserialize
+        //    |> function 
+        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
+        //            [WrongCardPlayed { Player = player; Card = card }]
+        //        | _ -> []
+        //| "PlayerPlayedAtWrongTurn" -> 
+        //    data
+        //    |> deserialize
+        //    |> function 
+        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
+        //            [PlayerPlayedAtWrongTurn { Player = player; Card = card }]
         //        | _ -> []
 
         | "GameStarted" -> 
