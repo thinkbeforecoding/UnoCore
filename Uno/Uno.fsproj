@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Hello.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="CommandHandler.fs" />
@@ -11,5 +12,6 @@
     <Compile Include="EventStore.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

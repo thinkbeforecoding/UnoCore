@@ -25,7 +25,7 @@ let toEvent ((eventType, data): SerializedEvent) =
 let read (store:IEventStoreConnection) deserialize: _ Read =
     fun (StreamId stream) (EventNumber version) ->
         let slice =
-            store.ReadStreamEventsForwardAsync(stream, version, 5000, true )
+            store.ReadStreamEventsForwardAsync(stream, version, 4096, true )
             |> Async.AwaitTask
             |> Async.RunSynchronously
 
@@ -52,23 +52,23 @@ let append (store: IEventStoreConnection) serialize : _ Append =
 
         EventNumber result.NextExpectedVersion
 
-let loadSnapshot (store: IEventStoreConnection) (deserialize: string -> ('s * EventNumber) option) : 's LoadSnapshot =
-    fun (StreamId stream) ->
-        let slice =
-            store.ReadStreamEventsBackwardAsync(stream, int64 StreamPosition.End, 1, false)
-            |> Async.AwaitTask
-            |> Async.RunSynchronously
+////let loadSnapshot (store: IEventStoreConnection) (deserialize: string -> ('s * EventNumber) option) : 's LoadSnapshot =
+//    fun (StreamId stream) ->
+//        let slice =
+//            store.ReadStreamEventsBackwardAsync(stream, int64 StreamPosition.End, 1, false)
+//            |> Async.AwaitTask
+//            |> Async.RunSynchronously
     
-        match slice.Events with
-        | [| e |] -> 
-            let _, d = ofEvent e
-            deserialize d
-        | _ -> None
+//        match slice.Events with
+//        | [| e |] -> 
+//            let _, d = ofEvent e
+//            deserialize d
+//        | _ -> None
 
-let saveSnapshot (store: IEventStoreConnection) (serialize: 's -> EventNumber -> string) : 's SaveSnapshot =
-    fun (StreamId stream) state version ->
-        let data = toEvent("Snapshot", serialize state version)
-        store.AppendToStreamAsync(stream, ExpectedVersion.Any, data)
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
-        |> ignore
+//let saveSnapshot (store: IEventStoreConnection) (serialize: 's -> EventNumber -> string) : 's SaveSnapshot =
+//    fun (StreamId stream) state version ->
+//        let data = toEvent("Snapshot", serialize state version)
+//        store.AppendToStreamAsync(stream, ExpectedVersion.Any, data)
+//        |> Async.AwaitTask
+//        |> Async.RunSynchronously
+//        |> ignore

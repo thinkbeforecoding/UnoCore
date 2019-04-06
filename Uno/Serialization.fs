@@ -33,8 +33,12 @@ type GameStartedDto = {
 }
 
 type CardPlayedDto = {
-    Player: int
     Card: CardDto
+    Player: int
+}
+
+type TurnStartedDto = {
+    Player: int
 }
 
 module Parse =
@@ -85,6 +89,10 @@ module GameEvents =
         | Digit(d, c ) -> { Value = string d; Color = string c}
       //| Skip(c) -> { Value = "Skip"; Color = string c }
 
+    let serializeCard e =
+        { CardPlayedDto.Card = toCardDto e.Card; Player = let (PlayerId p) = e.Player in p }
+        |> serialize
+
 
     let serialize event = 
             match event with
@@ -93,47 +101,31 @@ module GameEvents =
                     { GameStartedDto.Players = let (Players p) = e.Players in p
                       FirstCard = toCardDto e.FirstCard } 
                     |> serialize
-            //| CardPlayed e -> 
-            //    "CardPlayed", 
-            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
-            //          Card = toCardDto e.Card }
-            //        |> serialize
-            //| WrongCardPlayed e -> 
-            //    "WrongCardPlayed", 
-            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
-            //          Card = toCardDto e.Card }
-            //        |> serialize
-            //| PlayerPlayedAtWrongTurn e -> 
-            //    "PlayerPlayedAtWrongTurn", 
-            //        { CardPlayedDto.Player = let (PlayerId p) = e.Player in p
-            //          Card = toCardDto e.Card }
-            //        |> serialize
-           
+            | CardPlayed e -> "CardPlayed", serializeCard e
+            | WrongCardPlayed e -> "WrongCardPlayed",  serializeCard e
+            | InterruptionSucceeded e -> "InterruptionSucceeded",  serializeCard e
+            | InterruptionMissed e -> "InterruptionMissed",  serializeCard e
+            | PlayerPlayedAtWrongTurn e -> "PlayerPlayedAtWrongTurn", serializeCard e
+            | TurnStarted e ->
+                "TurnStarted",
+                    { TurnStartedDto.Player = let (PlayerId p) = e.Player in p }
+                    |> serialize
+
+    let deserializeCard event data=
+        data
+        |> deserialize
+        |> function 
+            | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
+              [ event { CardPlayed.Player = player; Card = card } ]
+            | _ -> []
 
     let deserialize (eventType, data) =
         match eventType with
-        //| "CardPlayed" -> 
-        //    data
-        //    |> deserialize
-        //    |> function 
-        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
-        //            [CardPlayed { Player = player; Card = card }]
-        //        | _ -> []
-        //| "WrongCardPlayed" -> 
-        //    data
-        //    |> deserialize
-        //    |> function 
-        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
-        //            [WrongCardPlayed { Player = player; Card = card }]
-        //        | _ -> []
-        //| "PlayerPlayedAtWrongTurn" -> 
-        //    data
-        //    |> deserialize
-        //    |> function 
-        //        | { CardPlayedDto.Player = Parse.Player player; Card = Parse.Card card } ->
-        //            [PlayerPlayedAtWrongTurn { Player = player; Card = card }]
-        //        | _ -> []
-
+        | "CardPlayed" -> data |> deserializeCard CardPlayed
+        | "WrongCardPlayed" -> data |> deserializeCard WrongCardPlayed 
+        | "PlayerPlayedAtWrongTurn" -> data |> deserializeCard PlayerPlayedAtWrongTurn
+        | "InterruptionSucceeded" ->  data |> deserializeCard InterruptionSucceeded
+        | "InterruptionMissed" -> data |> deserializeCard InterruptionMissed
         | "GameStarted" -> 
             data
             |> deserialize
@@ -141,6 +133,13 @@ module GameEvents =
                     | { GameStartedDto.Players = Parse.Players players
                         FirstCard = Parse.Card card } ->
                         [GameStarted  { Players = players; FirstCard = card }]
+                    | _ -> []
+        | "TurnStarted" ->
+            data
+            |> deserialize
+            |> function
+                    | { TurnStartedDto.Player = Parse.Player player} ->
+                        [ TurnStarted { Player = player}]
                     | _ -> []
         | _ -> []
 

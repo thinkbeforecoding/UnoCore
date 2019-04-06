@@ -19,7 +19,13 @@ open Game
 // Step 16:
 // Implement the command handler
 let handler (read: _ Read) (append: _ Append) stream command =
-    failwith "Not implemented"
+    
+    let events, version = read stream EventNumber.Start
+    events
+    |> List.fold evolve InitialState
+    |> decide command
+    |> append stream version
+    |> ignore
 
 
 
@@ -56,15 +62,45 @@ let handler (read: _ Read) (append: _ Append) stream command =
 // Implement Snapshoting
 
 
-type LoadSnapshot<'s> = StreamId -> ('s * EventNumber) option
-type SaveSnapshot<'s> = StreamId -> 's -> EventNumber -> unit
 
 type Agent<'t> = MailboxProcessor<'t>
 
-module EventNumber =
-    let dist (EventNumber x) (EventNumber y) = x - y
+let game (read: _ Read) (append: _ Append) stream =
+    Agent.Start (fun mailbox ->
+         let rec loop state version =
+             async {
+                 let! command, reply = mailbox.Receive()
+                 try 
+                     let newEvents = decide command state
+                     let newVersion = append stream version newEvents
+                     let newState = List.fold evolve state newEvents
+                     reply (Ok())
 
-let snapStream (StreamId s) = StreamId ("Snap-" + s)
+                     return! loop newState newVersion
+                 with
+                 | err ->
+                     reply (Error err)
+                     return! loop state version }
+         let rec load initialState startVersion =
+                 let events, v = read stream startVersion
+                 List.fold evolve initialState events, v
+
+         async {
+             let state, version = load InitialState EventNumber.Start
+             return! loop state version }) 
+
+let send cmd (agent: _ Agent) =
+    agent.PostAndAsyncReply(fun r -> cmd, r.Reply)
+
+
+
+//type LoadSnapshot<'s> = StreamId -> ('s * EventNumber) option
+//type SaveSnapshot<'s> = StreamId -> 's -> EventNumber -> unit
+
+//module EventNumber =
+//    let dist (EventNumber x) (EventNumber y) = x - y
+
+//let snapStream (StreamId s) = StreamId ("Snap-" + s)
 
 //let game (read: _ Read) (append: _ Append) (loadSnapshot: _ LoadSnapshot) (saveSnapshot: _ SaveSnapshot) stream =
 //    let snapStream = snapStream stream
@@ -103,5 +139,3 @@ let snapStream (StreamId s) = StreamId ("Snap-" + s)
 //             let state, version = load snapshotState snapshotVersion
 //             return! loop state version snapshotVersion }) 
 
-//let send cmd (agent: _ Agent) =
-//    agent.PostAndAsyncReply(fun r -> cmd, r.Reply)
